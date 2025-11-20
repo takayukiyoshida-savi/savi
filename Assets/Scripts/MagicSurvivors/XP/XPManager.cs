@@ -1,5 +1,6 @@
 using UnityEngine;
 using MagicSurvivors.Characters;
+using MagicSurvivors.Data;
 
 namespace MagicSurvivors.XP
 {
@@ -8,8 +9,6 @@ namespace MagicSurvivors.XP
         [Header("Level Settings")]
         [SerializeField] private int currentLevel = 1;
         [SerializeField] private int currentXP = 0;
-        [SerializeField] private int baseXPRequired = 100;
-        [SerializeField] private float xpScalingFactor = 1.2f;
         
         private PlayerCharacter player;
         private int xpRequiredForNextLevel;
@@ -45,7 +44,7 @@ namespace MagicSurvivors.XP
             currentXP += amount;
             OnXPChanged?.Invoke(currentXP, xpRequiredForNextLevel);
             
-            while (currentXP >= xpRequiredForNextLevel)
+            while (currentXP >= xpRequiredForNextLevel && currentLevel < XPTable.GetMaxLevel())
             {
                 LevelUp();
             }
@@ -65,7 +64,7 @@ namespace MagicSurvivors.XP
         
         private void CalculateXPRequired()
         {
-            xpRequiredForNextLevel = Mathf.RoundToInt(baseXPRequired * Mathf.Pow(xpScalingFactor, currentLevel - 1));
+            xpRequiredForNextLevel = XPTable.GetXPRequiredForLevel(currentLevel);
         }
     }
 }

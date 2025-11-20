@@ -4,17 +4,26 @@ namespace MagicSurvivors.Data
 {
     public static class GameConstants
     {
-        public const float GAME_DURATION = 1200f; // 20 minutes in seconds
-        public const float STAGE_1_DURATION = 600f; // 10 minutes
-        public const float MINIBOSS_1_TIME = 300f; // 5 minutes
-        public const float MINIBOSS_2_TIME = 600f; // 10 minutes
-        public const float MINIBOSS_3_TIME = 900f; // 15 minutes
-        public const float FINAL_BOSS_TIME = 1200f; // 20 minutes
+        public const float GAME_DURATION = 1200f;
+        public const float STAGE_1_DURATION = 600f;
+        public const float MINIBOSS_1_TIME = 300f;
+        public const float MINIBOSS_2_TIME = 600f;
+        public const float MINIBOSS_3_TIME = 900f;
+        public const float FINAL_BOSS_TIME = 1200f;
         
         public const int MAX_SKILL_SLOTS = 6;
         public const int LEVEL_UP_CARD_COUNT = 3;
+        public const int MAX_SKILL_LEVEL = 5;
         
-        public const float XP_PICKUP_RANGE_BASE = 2f;
+        public const float XP_PICKUP_RANGE_BASE = 3f;
+        public const float XP_PICKUP_RANGE_MAX = 5f;
+        
+        public const float PLAYER_BASE_MOVE_SPEED = 4.5f;
+        public const float PLAYER_BASE_ATTACK = 10f;
+        
+        public const int SYNERGY_REQUIRED_LEVEL = 3;
+        
+        public const int META_UPGRADE_MAX_LEVEL = 10;
     }
     
     public enum ElementType
