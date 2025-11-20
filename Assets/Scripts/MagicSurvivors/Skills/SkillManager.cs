@@ -81,6 +81,19 @@ namespace MagicSurvivors.Skills
             return elements;
         }
         
+        public int GetTotalLevelForElement(ElementType element)
+        {
+            int totalLevel = 0;
+            foreach (var skill in activeSkills.Values)
+            {
+                if (skill.Data.element == element)
+                {
+                    totalLevel += skill.CurrentLevel;
+                }
+            }
+            return totalLevel;
+        }
+        
         public void SetAttackPowerMultiplier(float multiplier)
         {
             attackPowerMultiplier = multiplier;

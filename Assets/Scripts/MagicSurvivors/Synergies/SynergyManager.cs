@@ -7,21 +7,25 @@ namespace MagicSurvivors.Synergies
 {
     public class SynergyManager : MonoBehaviour
     {
-        [Header("Synergy Database")]
-        [SerializeField] private List<SynergyData> allSynergies = new List<SynergyData>();
-        
         private List<SynergyType> activeSynergies = new List<SynergyType>();
+        private Dictionary<ElementType, int> elementLevels = new Dictionary<ElementType, int>();
         private SkillManager skillManager;
         
         public delegate void SynergyEvent(SynergyType synergyType);
         public event SynergyEvent OnSynergyActivated;
+        
+        private void Awake()
+        {
+            SynergyDatabase.Initialize();
+        }
         
         private void Start()
         {
             skillManager = GetComponent<SkillManager>();
             if (skillManager != null)
             {
-                skillManager.OnSkillAcquired += CheckForNewSynergies;
+                skillManager.OnSkillAcquired += OnSkillAcquired;
+                skillManager.OnSkillLevelUp += OnSkillLevelUp;
             }
         }
         
@@ -29,20 +33,48 @@ namespace MagicSurvivors.Synergies
         {
             if (skillManager != null)
             {
-                skillManager.OnSkillAcquired -= CheckForNewSynergies;
+                skillManager.OnSkillAcquired -= OnSkillAcquired;
+                skillManager.OnSkillLevelUp -= OnSkillLevelUp;
             }
         }
         
-        private void CheckForNewSynergies(SkillType skillType)
+        private void OnSkillAcquired(SkillType skillType)
         {
-            List<ElementType> activeElements = skillManager.GetActiveElements();
+            UpdateElementLevels();
+            CheckForNewSynergies();
+        }
+        
+        private void OnSkillLevelUp(SkillType skillType)
+        {
+            UpdateElementLevels();
+            CheckForNewSynergies();
+        }
+        
+        private void UpdateElementLevels()
+        {
+            elementLevels.Clear();
             
-            foreach (SynergyData synergy in allSynergies)
+            List<ElementType> activeElements = skillManager.GetActiveElements();
+            foreach (ElementType element in activeElements)
+            {
+                int totalLevel = skillManager.GetTotalLevelForElement(element);
+                elementLevels[element] = totalLevel;
+            }
+        }
+        
+        private void CheckForNewSynergies()
+        {
+            List<SynergyDefinition> allSynergies = SynergyDatabase.GetAllSynergies();
+            
+            foreach (SynergyDefinition synergy in allSynergies)
             {
                 if (!activeSynergies.Contains(synergy.synergyType))
                 {
-                    if (activeElements.Contains(synergy.requirement.element1) &&
-                        activeElements.Contains(synergy.requirement.element2))
+                    int level1 = elementLevels.ContainsKey(synergy.element1) ? elementLevels[synergy.element1] : 0;
+                    int level2 = elementLevels.ContainsKey(synergy.element2) ? elementLevels[synergy.element2] : 0;
+                    
+                    if (level1 >= GameConstants.SYNERGY_REQUIRED_LEVEL && 
+                        level2 >= GameConstants.SYNERGY_REQUIRED_LEVEL)
                     {
                         ActivateSynergy(synergy);
                     }
@@ -50,11 +82,11 @@ namespace MagicSurvivors.Synergies
             }
         }
         
-        private void ActivateSynergy(SynergyData synergy)
+        private void ActivateSynergy(SynergyDefinition synergy)
         {
             activeSynergies.Add(synergy.synergyType);
             OnSynergyActivated?.Invoke(synergy.synergyType);
-            Debug.Log($"SynergyManager: Activated synergy {synergy.synergyName}");
+            Debug.Log($"SynergyManager: Activated synergy {synergy.synergyName} ({synergy.synergyNameJapanese})");
         }
         
         public bool HasSynergy(SynergyType synergyType)
@@ -62,15 +94,20 @@ namespace MagicSurvivors.Synergies
             return activeSynergies.Contains(synergyType);
         }
         
+        public List<SynergyType> GetActiveSynergies()
+        {
+            return new List<SynergyType>(activeSynergies);
+        }
+        
         public float GetDamageMultiplier()
         {
             float multiplier = 1f;
             foreach (SynergyType synergyType in activeSynergies)
             {
-                SynergyData data = allSynergies.Find(s => s.synergyType == synergyType);
-                if (data != null)
+                SynergyDefinition synergy = SynergyDatabase.GetSynergy(synergyType);
+                if (synergy != null)
                 {
-                    multiplier *= data.damageMultiplier;
+                    multiplier *= synergy.damageMultiplier;
                 }
             }
             return multiplier;
